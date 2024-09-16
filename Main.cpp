@@ -38,6 +38,8 @@ long long  IFG_Bytes_no = (( config.lineRate* 1e9 ) / 8) * config.burstPeriodici
 cout<<"Total number of IFG bytes is "<<IFG_Bytes_no<<" bytes"<<endl;
 int No_Bursts = floor(Tot_Data_Bytes/(IFG_Bytes_no + (config.burstSize*(config.maxPacketSize + config.minNumOfIFGs ))));
 cout<<"Total number of Bursts is "<<No_Bursts<<endl;
+int IFG_extra_bytes = Tot_Data_Bytes - (No_Bursts * ((config.burstSize* (config.maxPacketSize + config.minNumOfIFGs)) + IFG_Bytes_no));
+cout << "Total number of IFG_extra_bytes is " << IFG_extra_bytes << endl;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////    
     //Converting hex to string 
@@ -46,6 +48,7 @@ cout<<"Total number of Bursts is "<<No_Bursts<<endl;
     string ethertype_str = HexToString(ethertype); 
     string payload_str = HexToString(payload); 
     string IFG_str = HexToString(IFG); 
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////    
     //calculating payload size
@@ -97,7 +100,7 @@ cout<<"Total number of Bursts is "<<No_Bursts<<endl;
         }
     }
 
-    string Packet_CRC = Packet_No_CRC + CRC_str + IFG_APPENDED; 
+    string Packet_CRC = Packet_No_CRC + CRC_str + IFG_APPENDED ;
    
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -134,6 +137,25 @@ cout<<"Total number of Bursts is "<<No_Bursts<<endl;
         }
         count++;
 
+        // IFGs that are not burst IFGs
+        int charCount1 = 0;
+        for (int k = 0 ; k <= IFG_extra_bytes/ No_Bursts; k++) {  // Loop for IFGs
+            outFile << IFG_str[0] << IFG_str[1];
+            charCount1 += 2;
+
+            // Check if we need to start a new line every 8 bytes
+            if (charCount1 % 8 == 0) {
+                outFile << endl;
+                charCount1 = 0;
+            }
+        }
+
+        // If there are leftover bytes (less than 8), add a newline to maintain alignment
+        if (charCount1 > 0) {
+            outFile << endl;
+        }
+
+
         // IFGs
         int charCount = 0;
         for (int k = 0; k < IFG_Bytes_no; k++) {  // Loop for IFGs
@@ -146,6 +168,7 @@ cout<<"Total number of Bursts is "<<No_Bursts<<endl;
                 charCount = 0;
             }
         }
+        
 
         // If there are leftover bytes (less than 8), add a newline to maintain alignment
         if (charCount > 0) {
