@@ -9,4 +9,4 @@
   
 -first_milestone.txt --> Configuration file.
 
--output.txt --> Contains output for my test case.
+-output.txt --> Contains output for my test case in which the capture size is 1 msec to reduce the size of generated data because the file was so big.
